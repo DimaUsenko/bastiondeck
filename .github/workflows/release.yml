@@ -30,7 +30,7 @@ jobs:
           APP_BASE="$(basename "$APP_DIR")"
           tar -czf bastiondeck-source.tar.gz -C release "$APP_BASE"
           (cd "$APP_DIR" && zip -qr "$GITHUB_WORKSPACE/bastiondeck-windows.zip" .)
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           files: |
             bastiondeck-source.tar.gz
