@@ -1,5 +1,7 @@
 # BastionDeck
 
+![BastionDeck dashboard](docs/assets/bastiondeck-dashboard.png)
+
 BastionDeck is a local web panel for bringing private-network services to your laptop through SSH bastion hosts.
 
 If your company keeps databases, APIs, dashboards, MCP servers, or other internal tools behind a VPN and a jump server, BastionDeck gives you a small UI for turning those private `host:port` endpoints into stable `localhost` URLs.
