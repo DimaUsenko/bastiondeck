@@ -8,19 +8,35 @@ export function SettingsPage({ settings, onChange }: {
 }) {
   // Local draft so typing doesn't round-trip on every keystroke; commit on blur.
   const [draft, setDraft] = useState<Settings>(settings);
-  useEffect(() => setDraft(settings), [settings]);
+  const [hostsText, setHostsTextDraft] = useState(settings.jumpHosts.join("\n"));
 
+  useEffect(() => {
+    setDraft(settings);
+    setHostsTextDraft(settings.jumpHosts.join("\n"));
+  }, [settings]);
+
+  const parseHosts = (text: string) => {
+    return Array.from(new Set(text.split(/[\n,]+/).map((h) => h.trim()).filter(Boolean)));
+  };
   const normalizeHosts = (hosts: string[], selected = draft.jumpHost) => {
     return Array.from(new Set([selected, ...hosts].map((h) => h.trim()).filter(Boolean)));
   };
   const set = (k: keyof Settings, v: string | number | string[]) => setDraft({ ...draft, [k]: v });
-  const commit = (next = draft) => onChange({ ...next, jumpHosts: normalizeHosts(next.jumpHosts, next.jumpHost) });
-  const setHostsText = (text: string) => {
-    const hosts = text.split(/[\s,]+/).map((h) => h.trim()).filter(Boolean);
+  const commit = (next = draft, text = hostsText) => {
+    const hosts = parseHosts(text);
+    const jumpHost = hosts.includes(next.jumpHost) ? next.jumpHost : hosts[0] || "";
+    const jumpHosts = normalizeHosts(hosts, jumpHost);
+    const saved = { ...next, jumpHost, jumpHosts };
+    onChange(saved);
+    setDraft(saved);
+    setHostsTextDraft(jumpHosts.join("\n"));
+  };
+  const updateHostsText = (text: string) => {
+    setHostsTextDraft(text);
+    const hosts = parseHosts(text);
     setDraft((d) => {
-      const selected = d.jumpHost || hosts[0] || "";
-      const jumpHost = hosts.includes(selected) ? selected : hosts[0] || "";
-      return { ...d, jumpHost, jumpHosts: normalizeHosts(hosts, jumpHost) };
+      const jumpHost = hosts.includes(d.jumpHost) ? d.jumpHost : hosts[0] || "";
+      return { ...d, jumpHost, jumpHosts: hosts };
     });
   };
 
@@ -47,8 +63,8 @@ export function SettingsPage({ settings, onChange }: {
         <div className="set-row">
           <div className="si"><div className="st">Available jump hosts</div><div className="sd">One host per line. Users can choose one per tunnel.</div></div>
           <div className="sc">
-            <textarea className="input input-area" value={draft.jumpHosts.join("\n")}
-              onChange={(e) => setHostsText(e.target.value)} onBlur={() => commit()} />
+            <textarea className="input input-area" value={hostsText}
+              onChange={(e) => updateHostsText(e.target.value)} onBlur={(e) => commit(draft, e.currentTarget.value)} />
           </div>
         </div>
         <div className="set-row">
