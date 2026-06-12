@@ -142,7 +142,7 @@ export default function App() {
       api.stop(tn.id).then(() => showToast(`${tn.name} stopped`)).catch((e: Error) => showToast(e.message));
       return;
     }
-    const login = tn.sshLogin || settings.sshLogin;
+    const login = settings.sshLogin;
     const jumpHost = tn.jumpHost || settings.jumpHost;
     if (!login) {
       setView("settings");

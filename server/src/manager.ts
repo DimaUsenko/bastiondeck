@@ -129,7 +129,7 @@ export async function start(id: string): Promise<void> {
 
   const settings = store.getSettings();
   const jumpHost = cfg.jumpHost || settings.jumpHost;
-  const sshLogin = cfg.sshLogin || settings.sshLogin;
+  const sshLogin = settings.sshLogin;
   if (!sshLogin) {
     const msg = "SSH login is required. Enter your corporate SSH login in Settings.";
     setStatus(cfg.id, "error", msg);
@@ -166,7 +166,7 @@ function spawnSsh(cfg: TunnelConfig): void {
   }
 
   const jumpHost = cfg.jumpHost || settings.jumpHost;
-  const sshLogin = cfg.sshLogin || settings.sshLogin;
+  const sshLogin = settings.sshLogin;
 
   r.status = "connecting";
   r.latency = null;

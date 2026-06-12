@@ -16,7 +16,7 @@ function CmdLine({ t, settings }: { t: Tunnel; settings: Settings }) {
     <code>
       ssh <span className="flag">-N</span> <span className="flag">-L</span>{" "}
       <span className="arg">{t.localPort}</span>:<span className="host">{t.host}</span>:<span className="arg">{t.port}</span>{" "}
-      {t.sshLogin || settings.sshLogin}@<span className="host">{t.jumpHost || settings.jumpHost}</span>
+      {settings.sshLogin}@<span className="host">{t.jumpHost || settings.jumpHost}</span>
     </code>
   );
 }
@@ -84,7 +84,7 @@ export function DetailDrawer({ t, settings, logs, onClose, onToggle, onAction, t
                 <span className="tl" style={{ background: "#ff5f57" }} />
                 <span className="tl" style={{ background: "#febc2e" }} />
                 <span className="tl" style={{ background: "#28c840" }} />
-                <span className="t-title">{t.sshLogin || settings.sshLogin}@{t.jumpHost || settings.jumpHost} — ssh</span>
+                <span className="t-title">{settings.sshLogin}@{t.jumpHost || settings.jumpHost} — ssh</span>
               </div>
               <div className="term-body">
                 {logs.map((l, i) => (
@@ -128,7 +128,7 @@ export function DetailDrawer({ t, settings, logs, onClose, onToggle, onAction, t
             <div className="detail-list">
               <div className="detail-item"><span className="dk">Status</span><span className="dv" style={{ color: statusColor }}>{STATUS_LABEL[st]}</span></div>
               <div className="detail-item"><span className="dk">Jump host</span><span className="dv">{t.jumpHost || settings.jumpHost}</span></div>
-              <div className="detail-item"><span className="dk">SSH login</span><span className="dv">{t.sshLogin || settings.sshLogin}</span></div>
+              <div className="detail-item"><span className="dk">SSH login</span><span className="dv">{settings.sshLogin}</span></div>
               <div className="detail-item"><span className="dk">Local port</span><span className="dv">{t.localPort}</span></div>
               <div className="detail-item"><span className="dk">Auto-restart</span><span className="dv">{t.autoRestart ? "On" : "Off"}</span></div>
               <div className="detail-item"><span className="dk">Latency</span><span className="dv">{t.latency != null ? t.latency + " ms" : "—"}</span></div>

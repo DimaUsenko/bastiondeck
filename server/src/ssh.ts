@@ -20,7 +20,7 @@ import type { Settings, TunnelConfig } from "./types.js";
  */
 export function buildSshArgs(cfg: TunnelConfig, settings: Settings): string[] {
   const jumpHost = cfg.jumpHost || settings.jumpHost;
-  const sshLogin = cfg.sshLogin || settings.sshLogin;
+  const sshLogin = settings.sshLogin;
 
   if (!isValidHost(cfg.host)) throw new Error(`Invalid target host: ${cfg.host}`);
   if (!isValidHost(jumpHost)) throw new Error(`Invalid jump host: ${jumpHost}`);

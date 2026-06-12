@@ -18,10 +18,10 @@ export function sourceAddr(t: Pick<WireTunnel, "host" | "port" | "path">): strin
 }
 
 export function sshCommand(
-  t: Pick<WireTunnel, "localPort" | "host" | "port" | "jumpHost" | "sshLogin">,
+  t: Pick<WireTunnel, "localPort" | "host" | "port" | "jumpHost">,
   s: Settings,
 ): string {
-  const login = t.sshLogin || s.sshLogin;
+  const login = s.sshLogin;
   const jump = t.jumpHost || s.jumpHost;
   return `ssh -N -L ${t.localPort}:${t.host}:${t.port} ${login}@${jump}`;
 }

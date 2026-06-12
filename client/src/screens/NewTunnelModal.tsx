@@ -9,11 +9,13 @@ function CmdLine({ t, settings }: {
   t: { localPort: number; host: string; port: number };
   settings: { sshLogin: string; jumpHost: string };
 }) {
+  const login = settings.sshLogin || "<login>";
+  const jumpHost = settings.jumpHost || "<jump-host>";
   return (
     <code>
       ssh <span className="flag">-N</span> <span className="flag">-L</span>{" "}
       <span className="arg">{t.localPort}</span>:<span className="host">{t.host}</span>:<span className="arg">{t.port}</span>{" "}
-      {settings.sshLogin}@<span className="host">{settings.jumpHost}</span>
+      {login}@<span className="host">{jumpHost}</span>
     </code>
   );
 }
@@ -28,9 +30,8 @@ export function NewTunnelModal({ settings, editing, onClose, onSubmit, toast }: 
   const [raw, setRaw] = useState(editing ? sourceAddr(editing) : "");
   const [name, setName] = useState(editing?.name ?? "");
   const [localPort, setLocalPort] = useState(editing ? String(editing.localPort) : "");
-  const [adv, setAdv] = useState(!settings.sshLogin);
+  const [adv, setAdv] = useState(!settings.jumpHost || !settings.sshLogin);
   const [jump, setJump] = useState(editing?.jumpHost ?? settings.jumpHost);
-  const [login, setLogin] = useState(editing?.sshLogin ?? settings.sshLogin);
   const [suggested, setSuggested] = useState<number | null>(editing ? editing.localPort : null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -53,9 +54,9 @@ export function NewTunnelModal({ settings, editing, onClose, onSubmit, toast }: 
   const autoPort = suggested ?? (p.ok ? p.port! : settings.portFrom);
   const effPort = localPort ? parseInt(localPort, 10) : autoPort;
   const previewTunnel = p.ok ? { host: p.host!, port: p.port!, path: p.path, localPort: effPort } : null;
-  const effSettings = { ...settings, jumpHost: jump, sshLogin: login };
+  const effSettings = { ...settings, jumpHost: jump };
   const jumpOptions = Array.from(new Set([jump, settings.jumpHost, ...settings.jumpHosts].filter(Boolean)));
-  const needsSsh = !jump.trim() || !login.trim();
+  const needsSsh = !jump.trim() || !settings.sshLogin.trim();
 
   function submit() {
     if (!p.ok || needsSsh) return;
@@ -68,7 +69,6 @@ export function NewTunnelModal({ settings, editing, onClose, onSubmit, toast }: 
       localPort: effPort,
       autoRestart: editing?.autoRestart ?? false,
       jumpHost: jump !== settings.jumpHost ? jump : undefined,
-      sshLogin: login !== settings.sshLogin ? login : undefined,
     };
     onSubmit(spec, editing?.id);
   }
@@ -129,29 +129,23 @@ export function NewTunnelModal({ settings, editing, onClose, onSubmit, toast }: 
           </div>
 
           <button className={"adv-toggle" + (adv ? " open" : "")} onClick={() => setAdv((a) => !a)}>
-            <Icons.ChevR size={14} className="chev" /> Advanced — jump host &amp; login
+            <Icons.ChevR size={14} className="chev" /> Advanced — jump host
           </button>
           {adv && (
             <div className="adv-body">
-              <div className="input-row">
-                <div className="field">
-                  <label>Jump host</label>
-                  <select className="input sans" value={jump} onChange={(e) => setJump(e.target.value)}>
-                    {!jumpOptions.length && <option value="">Configure in Settings</option>}
-                    {jumpOptions.map((host) => <option key={host} value={host}>{host}</option>)}
-                  </select>
-                </div>
-                <div className="field" style={{ maxWidth: "180px" }}>
-                  <label>SSH login</label>
-                  <input className="input" value={login} onChange={(e) => setLogin(e.target.value)} placeholder="jdoe" />
-                </div>
+              <div className="field">
+                <label>Jump host</label>
+                <select className="input sans" value={jump} onChange={(e) => setJump(e.target.value)}>
+                  {!jumpOptions.length && <option value="">Configure in Settings</option>}
+                  {jumpOptions.map((host) => <option key={host} value={host}>{host}</option>)}
+                </select>
               </div>
               <div className={"setup-callout" + (needsSsh ? " warn" : "")}>
                 <Icons.Key size={14} />
                 <span>
                   {needsSsh
-                    ? "Choose a jump host and enter your SSH login. Public-key access must already work for that host."
-                    : "Public-key access must already work for this jump host. Changes here apply only to this tunnel."}
+                    ? "Choose a jump host here and configure SSH login in Settings. Public-key access must already work for that host."
+                    : "Public-key access and SSH login are configured in Settings. This tunnel only chooses which jump host to use."}
                 </span>
               </div>
             </div>
@@ -162,15 +156,15 @@ export function NewTunnelModal({ settings, editing, onClose, onSubmit, toast }: 
             <div className="cmd">
               {previewTunnel
                 ? <CmdLine t={previewTunnel} settings={effSettings} />
-                : <code style={{ color: "var(--text-3)" }}>ssh -N -L &lt;localPort&gt;:&lt;host&gt;:&lt;port&gt; {login}@{jump}</code>}
-              {previewTunnel && (
-                <span className="cmd-copy"><CopyBtn text={sshCommand({ ...previewTunnel, jumpHost: jump, sshLogin: login }, effSettings)} toast={toast} /></span>
+                : <code style={{ color: "var(--text-3)" }}>ssh -N -L &lt;localPort&gt;:&lt;host&gt;:&lt;port&gt; {settings.sshLogin || "<login>"}@{jump || "<jump-host>"}</code>}
+              {previewTunnel && !needsSsh && (
+                <span className="cmd-copy"><CopyBtn text={sshCommand({ ...previewTunnel, jumpHost: jump }, effSettings)} toast={toast} /></span>
               )}
             </div>
           </div>
         </div>
         <div className="modal-foot">
-          <span className="hint"><Icons.Lock size={13} /> {needsSsh ? "SSH login required" : "Forwarded over SSH · key auth"}</span>
+          <span className="hint"><Icons.Lock size={13} /> {needsSsh ? "Configure SSH settings first" : "Forwarded over SSH · key auth"}</span>
           <div style={{ display: "flex", gap: "8px" }}>
             <button className="btn btn-subtle" onClick={onClose}>Cancel</button>
             <button className="btn btn-primary" disabled={!p.ok || needsSsh} onClick={submit}

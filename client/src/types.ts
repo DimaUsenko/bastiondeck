@@ -58,7 +58,6 @@ export interface TunnelSpec {
   localPort?: number;
   autoRestart?: boolean;
   jumpHost?: string;
-  sshLogin?: string;
 }
 
 export type PreflightStatus = "ok" | "warn" | "error";

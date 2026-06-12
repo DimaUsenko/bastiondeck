@@ -42,9 +42,6 @@ function normalizeSpec(spec: TunnelSpec): Omit<TunnelConfig, "id"> {
   if (spec.jumpHost != null && spec.jumpHost !== "" && !isValidHost(spec.jumpHost)) {
     throw new Error("Invalid jump host");
   }
-  if (spec.sshLogin != null && spec.sshLogin !== "" && !isValidLogin(spec.sshLogin)) {
-    throw new Error("Invalid SSH login");
-  }
   const type: TunnelType = spec.type === "MCP" || spec.type === "API"
     ? spec.type
     : /\/mcp\b/i.test(path) || /mcp/i.test(spec.host) ? "MCP" : "API";
@@ -58,7 +55,7 @@ function normalizeSpec(spec: TunnelSpec): Omit<TunnelConfig, "id"> {
     localPort: spec.localPort ?? spec.port,
     autoRestart: Boolean(spec.autoRestart),
     jumpHost: spec.jumpHost || undefined,
-    sshLogin: spec.sshLogin || undefined,
+    sshLogin: undefined,
   };
 }
 
