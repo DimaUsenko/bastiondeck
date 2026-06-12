@@ -1,25 +1,68 @@
 # BastionDeck
 
-Local web panel for creating and monitoring SSH `-L` tunnels to internal corporate services.
+BastionDeck is a local web panel for bringing private-network services to your laptop through SSH bastion hosts.
 
-It is designed for laptop use: connect to the corporate VPN, choose a jump host, enter your own SSH login, and expose an internal `host:port` as a local URL.
+If your company keeps databases, APIs, dashboards, MCP servers, or other internal tools behind a VPN and a jump server, BastionDeck gives you a small UI for turning those private `host:port` endpoints into stable `localhost` URLs.
+
+It is built around the standard OpenSSH local-forwarding flow:
+
+```bash
+ssh -N -L <local-port>:<private-host>:<private-port> <user>@<bastion-host>
+```
+
+BastionDeck does not replace your VPN, SSH keys, or access policies. It makes the tunnel setup, status checks, restart flow, and local URL copying less manual.
+
+## Use Cases
+
+- Access an internal API from local scripts, IDEs, or browser tools.
+- Connect desktop clients to private databases through a bastion host.
+- Expose MCP or JSON-RPC services from a corporate network to localhost.
+- Keep multiple SSH local forwards visible, named, checked, and restartable.
+- Share a lightweight tunnel workflow with teammates without sharing credentials.
 
 ## Features
 
 - Create tunnels from `host:port`, `host:port/path`, or full internal URLs.
-- Choose a corporate jump host globally or per tunnel.
+- Choose a bastion/jump host globally or per tunnel.
 - VPN preflight: DNS check plus TCP check to the selected jump host on port `22`.
 - SSH public-key auth only. Password prompts are disabled with `BatchMode=yes`.
 - Health checks every 5/10/30/60 seconds.
 - MCP probe support through JSON-RPC `initialize`.
 - Local persistent settings in the user's home directory, outside the installed app.
+- Cross-platform distribution scaffolding for Homebrew and Windows `cmd.exe`.
 
 ## Requirements
 
 - Node.js 22+
 - OpenSSH client available as `ssh`
-- Corporate VPN access
+- Network access to your private environment, usually through a corporate VPN
 - SSH public-key access to the selected jump host
+
+## Install
+
+Until the first release is published, clone and run from source:
+
+```bash
+git clone https://github.com/DimaUsenko/bastiondeck.git
+cd bastiondeck
+npm ci
+npm run build
+npm run start:cli
+```
+
+Planned install paths after the first release:
+
+```bash
+brew tap DimaUsenko/tap
+brew install bastiondeck
+bastiondeck
+```
+
+```cmd
+curl.exe -L -o install.cmd https://github.com/DimaUsenko/bastiondeck/releases/latest/download/install.cmd
+install.cmd
+bastiondeck
+```
 
 ## Development
 

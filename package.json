@@ -1,7 +1,7 @@
 {
   "name": "bastiondeck",
   "version": "0.1.0",
-  "description": "Local web panel to create and monitor SSH port-forward tunnels to internal services.",
+  "description": "Local web panel for bringing private-network services to localhost through SSH bastion hosts.",
   "license": "MIT",
   "bin": {
     "bastiondeck": "bin/bastiondeck.mjs"

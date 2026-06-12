@@ -1,5 +1,5 @@
 class Bastiondeck < Formula
-  desc "Local web panel to create and monitor SSH port-forward tunnels"
+  desc "Bring private-network services to localhost through SSH bastion hosts"
   homepage "https://github.com/DimaUsenko/bastiondeck"
   url "https://github.com/DimaUsenko/bastiondeck/archive/refs/tags/v0.1.0.tar.gz"
   sha256 "REPLACE_WITH_RELEASE_TARBALL_SHA256"
