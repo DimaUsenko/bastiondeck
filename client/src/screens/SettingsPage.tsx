@@ -11,8 +11,7 @@ export function SettingsPage({ settings, onChange }: {
   useEffect(() => setDraft(settings), [settings]);
 
   const normalizeHosts = (hosts: string[], selected = draft.jumpHost) => {
-    const next = Array.from(new Set([selected, ...hosts].map((h) => h.trim()).filter(Boolean)));
-    return next.length ? next : settings.jumpHosts;
+    return Array.from(new Set([selected, ...hosts].map((h) => h.trim()).filter(Boolean)));
   };
   const set = (k: keyof Settings, v: string | number | string[]) => setDraft({ ...draft, [k]: v });
   const commit = (next = draft) => onChange({ ...next, jumpHosts: normalizeHosts(next.jumpHosts, next.jumpHost) });
@@ -20,7 +19,8 @@ export function SettingsPage({ settings, onChange }: {
     const hosts = text.split(/[\s,]+/).map((h) => h.trim()).filter(Boolean);
     setDraft((d) => {
       const selected = d.jumpHost || hosts[0] || "";
-      return { ...d, jumpHost: selected, jumpHosts: normalizeHosts(hosts, selected) };
+      const jumpHost = hosts.includes(selected) ? selected : hosts[0] || "";
+      return { ...d, jumpHost, jumpHosts: normalizeHosts(hosts, jumpHost) };
     });
   };
 
@@ -53,7 +53,7 @@ export function SettingsPage({ settings, onChange }: {
         </div>
         <div className="set-row">
           <div className="si"><div className="st">SSH login</div><div className="sd">Username used to authenticate to the jump host.</div></div>
-          <div className="sc"><input className="input" value={draft.sshLogin} onChange={(e) => set("sshLogin", e.target.value)} onBlur={() => commit()} placeholder="ivanov-i" /></div>
+          <div className="sc"><input className="input" value={draft.sshLogin} onChange={(e) => set("sshLogin", e.target.value)} onBlur={() => commit()} placeholder="jdoe" /></div>
         </div>
         <div className="set-row">
           <div className="si"><div className="st">Key path</div><div className="sd">Private key for authentication. Leave blank to use ssh-agent / ssh_config.</div></div>

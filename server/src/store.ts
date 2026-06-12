@@ -54,9 +54,12 @@ function normalizeSettings(raw: Partial<Settings> | undefined): Settings {
 
 function normalizeJumpHosts(raw: Partial<Settings> | undefined): string[] {
   const hosts = Array.isArray(raw?.jumpHosts) ? raw.jumpHosts : [];
-  const merged = [raw?.jumpHost, ...hosts, ...DEFAULT_SETTINGS.jumpHosts]
+  const merged = [raw?.jumpHost, ...hosts]
     .filter((h): h is string => typeof h === "string" && h.trim().length > 0)
     .map((h) => h.trim());
+  if (merged.length === 0 && raw?.jumpHost == null && raw?.jumpHosts == null) {
+    return DEFAULT_SETTINGS.jumpHosts;
+  }
   return Array.from(new Set(merged));
 }
 

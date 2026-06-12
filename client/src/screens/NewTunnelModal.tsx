@@ -119,7 +119,7 @@ export function NewTunnelModal({ settings, editing, onClose, onSubmit, toast }: 
             <div className="field">
               <label>Name <span className="help">optional</span></label>
               <input className="input sans" value={name} onChange={(e) => setName(e.target.value)}
-                placeholder={p.ok ? p.host!.split(".")[0] : "DataOffice MCP"} />
+                placeholder={p.ok ? p.host!.split(".")[0] : "Internal API"} />
             </div>
             <div className="field" style={{ maxWidth: "150px" }}>
               <label>Local port</label>
@@ -143,7 +143,7 @@ export function NewTunnelModal({ settings, editing, onClose, onSubmit, toast }: 
                 </div>
                 <div className="field" style={{ maxWidth: "180px" }}>
                   <label>SSH login</label>
-                  <input className="input" value={login} onChange={(e) => setLogin(e.target.value)} placeholder="ivanov-i" />
+                  <input className="input" value={login} onChange={(e) => setLogin(e.target.value)} placeholder="jdoe" />
                 </div>
               </div>
               <div className={"setup-callout" + (needsSsh ? " warn" : "")}>
