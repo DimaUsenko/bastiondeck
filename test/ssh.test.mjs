@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { buildSshArgs } from "../server/dist/ssh.js";
 
-test("ssh args use the settings login instead of a legacy tunnel login", () => {
+test("ssh args use settings jump host and login instead of legacy tunnel values", () => {
   const args = buildSshArgs({
     id: "t1",
     name: "Internal API",
@@ -24,5 +24,5 @@ test("ssh args use the settings login instead of a legacy tunnel login", () => {
     interval: 10,
   });
 
-  assert.equal(args.at(-1), "jdoe@bastion.example.com");
+  assert.equal(args.at(-1), "jdoe@default-bastion.example.com");
 });

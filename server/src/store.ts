@@ -38,29 +38,31 @@ export function getSettings(): Settings {
 }
 
 export async function setSettings(next: Settings): Promise<Settings> {
-  state.settings = { ...next, jumpHosts: normalizeJumpHosts(next) };
+  state.settings = normalizeSettings(next);
   await persist();
   return getSettings();
 }
 
 function normalizeSettings(raw: Partial<Settings> | undefined): Settings {
+  const jumpHost = normalizeJumpHost(raw);
   const settings: Settings = {
     ...DEFAULT_SETTINGS,
     ...(raw ?? {}),
-    jumpHosts: normalizeJumpHosts(raw),
+    jumpHost,
+    jumpHosts: jumpHost ? [jumpHost] : [],
   };
   return settings;
 }
 
-function normalizeJumpHosts(raw: Partial<Settings> | undefined): string[] {
+function normalizeJumpHost(raw: Partial<Settings> | undefined): string {
   const hosts = Array.isArray(raw?.jumpHosts) ? raw.jumpHosts : [];
   const merged = [raw?.jumpHost, ...hosts]
     .filter((h): h is string => typeof h === "string" && h.trim().length > 0)
     .map((h) => h.trim());
   if (merged.length === 0 && raw?.jumpHost == null && raw?.jumpHosts == null) {
-    return DEFAULT_SETTINGS.jumpHosts;
+    return DEFAULT_SETTINGS.jumpHost;
   }
-  return Array.from(new Set(merged));
+  return merged[0] || "";
 }
 
 export function getTunnels(): TunnelConfig[] {

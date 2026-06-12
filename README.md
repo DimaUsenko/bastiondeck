@@ -23,7 +23,7 @@ BastionDeck does not replace your VPN, SSH keys, or access policies. It makes th
 ## Features
 
 - Create tunnels from `host:port`, `host:port/path`, or full internal URLs.
-- Choose a bastion/jump host globally or per tunnel.
+- Configure one global bastion/jump host for all tunnels.
 - Configure SSH login and key handling once in Settings.
 - VPN preflight: DNS check plus TCP check to the selected jump host on port `22`.
 - SSH public-key auth only. Password prompts are disabled with `BatchMode=yes`.

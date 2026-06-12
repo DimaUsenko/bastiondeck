@@ -28,7 +28,7 @@ export interface TunnelConfig {
   path: string;
   localPort: number;
   autoRestart: boolean;
-  /** Per-tunnel jump host override; falls back to global Settings when undefined. */
+  /** Legacy persisted field. New SSH sessions always use Settings.jumpHost. */
   jumpHost?: string;
   /** Legacy persisted field. New SSH sessions always use Settings.sshLogin. */
   sshLogin?: string;
@@ -61,7 +61,6 @@ export interface TunnelSpec {
   path?: string;
   localPort?: number;
   autoRestart?: boolean;
-  jumpHost?: string;
 }
 
 export type PreflightStatus = "ok" | "warn" | "error";

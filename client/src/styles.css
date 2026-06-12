@@ -593,6 +593,29 @@ body {
   border-radius: 10px;
 }
 .set-note svg { flex: 0 0 auto; margin-top: 1px; color: var(--accent); }
+.set-status.ok,
+.set-save.ok {
+  background: rgba(var(--st-active-rgb),0.08);
+  border-color: rgba(var(--st-active-rgb),0.22);
+}
+.set-status.ok svg, .set-save.ok svg { color: var(--st-active); }
+.set-status.error,
+.set-save.error {
+  background: rgba(var(--st-error-rgb),0.09);
+  border-color: rgba(var(--st-error-rgb),0.28);
+  color: var(--text);
+}
+.set-status.error svg, .set-save.error svg { color: var(--st-error); }
+.set-save {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  margin-top: 16px; padding: 13px 14px;
+  color: var(--text-2); font-size: 12.5px; line-height: 1.45;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow-card);
+}
+.set-save-copy { display: flex; align-items: flex-start; gap: 10px; min-width: 0; }
+.set-save-copy svg { flex: 0 0 auto; margin-top: 1px; color: var(--accent); }
+.set-save .btn { flex: 0 0 auto; }
 
 /* misc */
 .fade-up { animation: fadeup .4s cubic-bezier(.2,.8,.2,1) both; }

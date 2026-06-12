@@ -57,7 +57,6 @@ export interface TunnelSpec {
   path?: string;
   localPort?: number;
   autoRestart?: boolean;
-  jumpHost?: string;
 }
 
 export type PreflightStatus = "ok" | "warn" | "error";

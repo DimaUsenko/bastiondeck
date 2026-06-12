@@ -19,7 +19,7 @@ import type { Settings, TunnelConfig } from "./types.js";
  * makes ssh exit (rather than hang) if the local bind fails.
  */
 export function buildSshArgs(cfg: TunnelConfig, settings: Settings): string[] {
-  const jumpHost = cfg.jumpHost || settings.jumpHost;
+  const jumpHost = settings.jumpHost;
   const sshLogin = settings.sshLogin;
 
   if (!isValidHost(cfg.host)) throw new Error(`Invalid target host: ${cfg.host}`);

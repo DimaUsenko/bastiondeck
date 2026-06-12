@@ -39,9 +39,6 @@ function normalizeSpec(spec: TunnelSpec): Omit<TunnelConfig, "id"> {
   const path = spec.path ?? "";
   if (!isValidPath(path)) throw new Error("Invalid path");
   if (spec.localPort != null && !isValidPort(spec.localPort)) throw new Error("Invalid local port");
-  if (spec.jumpHost != null && spec.jumpHost !== "" && !isValidHost(spec.jumpHost)) {
-    throw new Error("Invalid jump host");
-  }
   const type: TunnelType = spec.type === "MCP" || spec.type === "API"
     ? spec.type
     : /\/mcp\b/i.test(path) || /mcp/i.test(spec.host) ? "MCP" : "API";
@@ -54,7 +51,7 @@ function normalizeSpec(spec: TunnelSpec): Omit<TunnelConfig, "id"> {
     path,
     localPort: spec.localPort ?? spec.port,
     autoRestart: Boolean(spec.autoRestart),
-    jumpHost: spec.jumpHost || undefined,
+    jumpHost: undefined,
     sshLogin: undefined,
   };
 }
@@ -62,10 +59,8 @@ function normalizeSpec(spec: TunnelSpec): Omit<TunnelConfig, "id"> {
 function validateSettings(s: Partial<Settings>): Settings {
   const cur = store.getSettings();
   const next: Settings = { ...cur, ...s };
-  next.jumpHosts = Array.isArray(next.jumpHosts)
-    ? Array.from(new Set(next.jumpHosts.map((h) => String(h).trim()).filter(Boolean)))
-    : [next.jumpHost].filter(Boolean);
-  if (next.jumpHost && !next.jumpHosts.includes(next.jumpHost)) next.jumpHosts.unshift(next.jumpHost);
+  next.jumpHost = String(next.jumpHost ?? "").trim();
+  next.jumpHosts = next.jumpHost ? [next.jumpHost] : [];
   if (next.jumpHost !== "" && !isValidHost(next.jumpHost)) throw new Error("Invalid jump host");
   for (const host of next.jumpHosts) {
     if (!isValidHost(host)) throw new Error(`Invalid jump host: ${host}`);

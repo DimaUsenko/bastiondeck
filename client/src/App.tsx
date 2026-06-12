@@ -143,7 +143,7 @@ export default function App() {
       return;
     }
     const login = settings.sshLogin;
-    const jumpHost = tn.jumpHost || settings.jumpHost;
+    const jumpHost = settings.jumpHost;
     if (!login) {
       setView("settings");
       showToast("Enter your SSH login first");
@@ -186,7 +186,14 @@ export default function App() {
   }, [showToast]);
 
   const saveSettings = useCallback((next: Settings) => {
-    api.saveSettings(next).then(setSettings).catch((e: Error) => showToast(e.message));
+    return api.saveSettings(next).then((saved) => {
+      setSettings(saved);
+      showToast("Settings saved");
+      return saved;
+    }).catch((e: Error) => {
+      showToast(e.message);
+      throw e;
+    });
   }, [showToast]);
 
   // ---- derived ----
