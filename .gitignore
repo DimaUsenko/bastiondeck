@@ -1,0 +1,13 @@
+.DS_Store
+node_modules/
+.env
+CONTEXT.md
+design/
+
+# build output
+client/dist/
+server/dist/
+release/
+
+# local runtime state lives in ~/.bastiondeck (outside repo)
+*.log

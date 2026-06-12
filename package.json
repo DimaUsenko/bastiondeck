@@ -1,0 +1,40 @@
+{
+  "name": "bastiondeck",
+  "version": "0.1.0",
+  "description": "Local web panel to create and monitor SSH port-forward tunnels to internal services.",
+  "license": "MIT",
+  "bin": {
+    "bastiondeck": "bin/bastiondeck.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "bin/",
+    "client/dist/",
+    "server/dist/",
+    "client/package.json",
+    "server/package.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,client -c blue,magenta \"npm:dev:server\" \"npm:dev:client\"",
+    "dev:server": "npm run dev --workspace server",
+    "dev:client": "npm run dev --workspace client",
+    "build": "npm run build --workspace client && npm run build --workspace server",
+    "dist": "npm run build && npm pack",
+    "release:dir": "node scripts/prepare-release.mjs",
+    "typecheck": "npm run typecheck --workspace server && npm run typecheck --workspace client",
+    "test": "node --test test/*.test.mjs",
+    "start": "node server/dist/index.js",
+    "start:cli": "node bin/bastiondeck.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  }
+}

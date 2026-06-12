@@ -1,0 +1,39 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm audit --omit=dev
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npm test
+      - run: npm run release:dir
+      - name: Create archives
+        run: |
+          set -euo pipefail
+          APP_DIR="$(find release -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+          APP_BASE="$(basename "$APP_DIR")"
+          tar -czf bastiondeck-source.tar.gz -C release "$APP_BASE"
+          (cd "$APP_DIR" && zip -qr "$GITHUB_WORKSPACE/bastiondeck-windows.zip" .)
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            bastiondeck-source.tar.gz
+            bastiondeck-windows.zip
+            packaging/windows/install.cmd
+            packaging/windows/uninstall.cmd
