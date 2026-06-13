@@ -1,8 +1,8 @@
 class Bastiondeck < Formula
   desc "Bring private-network services to localhost through SSH bastion hosts"
   homepage "https://github.com/DimaUsenko/bastiondeck"
-  url "https://github.com/DimaUsenko/bastiondeck/releases/download/v0.1.0/bastiondeck-source.tar.gz"
-  sha256 "83b47129e42af7b6ab121d2a15d8f5f450569bc3d1acdb160f4a6f2cb6702042"
+  url "https://github.com/DimaUsenko/bastiondeck/releases/download/v0.1.1/bastiondeck-source.tar.gz"
+  sha256 "943e39ff572b76ca9b48bf62707974144abf9ff913cd089418a6fd34613d6db6"
   license "MIT"
 
   depends_on "node@22"
