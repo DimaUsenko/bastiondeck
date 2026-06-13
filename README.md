@@ -27,6 +27,7 @@ BastionDeck does not replace your VPN, SSH keys, or access policies. It makes th
 - Create tunnels from `host:port`, `host:port/path`, or full internal URLs.
 - Configure one global bastion/jump host for all tunnels.
 - Configure SSH login and key handling once in Settings.
+- Agent-ready local API for creating tunnels, changing settings, checking status, and reading logs.
 - VPN preflight: DNS check plus TCP check to the selected jump host on port `22`.
 - SSH public-key auth only. Password prompts are disabled with `BatchMode=yes`.
 - Health checks every 5/10/30/60 seconds.
@@ -126,6 +127,26 @@ BD_DATA_DIR=~/.bastiondeck
 `--url-host` changes the URL that is printed/opened. The hostname must still resolve to the machine. For a friendly local name like `bastiondeck.local`, configure DNS or a hosts-file entry to point it at `127.0.0.1`.
 
 Use `--host 0.0.0.0` only when you intentionally want the UI reachable from other machines on the network.
+
+## Agent-Ready API
+
+BastionDeck exposes a local JSON API so coding agents and scripts can operate the same tunnel workflow as the UI: configure the global jump host and SSH login, create or edit tunnels, start/stop/restart them, inspect health, and read recent logs.
+
+The one-shot agent snapshot is:
+
+```bash
+curl -s http://127.0.0.1:8787/api/status
+```
+
+Agents can install or reference the bundled skill at [bastiondeck_skill/SKILL.md](bastiondeck_skill/SKILL.md). The skill documents the API workflow and safe operating boundaries for creating tunnels to private services through BastionDeck.
+
+Common endpoints:
+
+- `GET /api/status` - settings, tunnel runtime status, and preflight in one response.
+- `PUT /api/settings` - save global jump host, SSH login, key path, port range, and health interval.
+- `POST /api/tunnels` - create a tunnel from target host/port/path and local port.
+- `POST /api/tunnels/:id/start|stop|restart` - control tunnel lifecycle.
+- `GET /api/tunnels/:id/logs/snapshot` - read the current in-memory log buffer.
 
 ## Persistent Data
 

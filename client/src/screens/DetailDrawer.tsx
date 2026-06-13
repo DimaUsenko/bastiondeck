@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Icons } from "../icons.js";
 import { CopyBtn, StatusDot, type ActionKind } from "../components/Card.js";
-import { localUrl, relTime, sourceAddr, sshCommand, STATUS_LABEL } from "../lib/tm.js";
+import { formatDuration, localUrl, relTime, sourceAddr, sshCommand, STATUS_LABEL } from "../lib/tm.js";
 import type { LogLine, Settings, Status, Tunnel } from "../types.js";
 
 const STATUS_COLOR: Record<Status, string> = {
@@ -103,7 +103,7 @@ export function DetailDrawer({ t, settings, logs, onClose, onToggle, onAction, t
             <div className="section-title">Latency history</div>
             <div className="chart-wrap">
               <div className="chart-legend">
-                <span>last {data.length} checks · every {settings.interval}s</span>
+                <span>last {data.length} checks · every {formatDuration(settings.interval)}</span>
                 <span>min <b>{min}ms</b> · avg <b>{avg}ms</b> · max <b>{max}ms</b></span>
               </div>
               <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">

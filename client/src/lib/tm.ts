@@ -33,6 +33,23 @@ export function relTime(sec: number | null): string {
   return `${Math.floor(sec / 3600)}h ago`;
 }
 
+export function formatDuration(sec: number): string {
+  if (sec % 3600 === 0) return `${sec / 3600}h`;
+  if (sec % 60 === 0) return `${sec / 60}m`;
+  return `${sec}s`;
+}
+
+export function parseDurationInput(raw: string): number | null {
+  const match = raw.trim().match(/^(\d+)\s*([smh])?$/i);
+  if (!match) return null;
+  const value = Number(match[1]);
+  const unit = (match[2] || "s").toLowerCase();
+  const multiplier = unit === "h" ? 3600 : unit === "m" ? 60 : 1;
+  const seconds = value * multiplier;
+  if (!Number.isSafeInteger(seconds)) return null;
+  return seconds >= 2 && seconds <= 86400 ? seconds : null;
+}
+
 function fmtUptime(ms: number): string {
   const s = Math.floor(ms / 1000);
   const d = Math.floor(s / 86400);

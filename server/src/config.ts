@@ -38,7 +38,7 @@ export const DEFAULT_SETTINGS: Settings = {
   keyPath: "",
   portFrom: 8000,
   portTo: 9999,
-  interval: 10,
+  interval: 1800,
 };
 
 /** Number of latency samples kept for the sparkline / chart. */

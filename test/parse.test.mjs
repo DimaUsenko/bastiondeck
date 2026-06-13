@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { parseAddress } from "../server/dist/parse.js";
+import { parseAddress, parseHealthInterval } from "../server/dist/parse.js";
 
 test("parseAddress accepts MCP URLs", () => {
   const parsed = parseAddress("http://internal-api.example.com:8040/mcp");
@@ -14,4 +14,18 @@ test("parseAddress accepts MCP URLs", () => {
 test("parseAddress rejects unsafe hosts", () => {
   const parsed = parseAddress("bad..host:8040/mcp");
   assert.equal(parsed.ok, false);
+});
+
+test("parseHealthInterval accepts seconds, minutes, and hours", () => {
+  assert.equal(parseHealthInterval(60), 60);
+  assert.equal(parseHealthInterval("60s"), 60);
+  assert.equal(parseHealthInterval("15m"), 900);
+  assert.equal(parseHealthInterval("1h"), 3600);
+  assert.equal(parseHealthInterval("2h"), 7200);
+});
+
+test("parseHealthInterval rejects out-of-range and malformed values", () => {
+  assert.equal(parseHealthInterval("1d"), null);
+  assert.equal(parseHealthInterval("0s"), null);
+  assert.equal(parseHealthInterval("25h"), null);
 });

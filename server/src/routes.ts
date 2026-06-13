@@ -8,11 +8,12 @@ import {
   isValidPath,
   isValidPort,
   parseAddress,
+  parseHealthInterval,
 } from "./parse.js";
 import { suggestPort } from "./ssh.js";
 import { preflight } from "./preflight.js";
 import * as store from "./store.js";
-import type { Settings, TunnelConfig, TunnelSpec, TunnelType } from "./types.js";
+import type { AgentStatus, Settings, TunnelConfig, TunnelSpec, TunnelType } from "./types.js";
 
 let idCounter = Date.now();
 const newId = (): string => `t${(idCounter++).toString(36)}`;
@@ -69,17 +70,29 @@ function validateSettings(s: Partial<Settings>): Settings {
   if (!isValidKeyPath(next.keyPath)) throw new Error("Invalid key path");
   next.portFrom = Number(next.portFrom);
   next.portTo = Number(next.portTo);
-  next.interval = Number(next.interval);
+  const interval = parseHealthInterval(next.interval);
   if (!isValidPort(next.portFrom) || !isValidPort(next.portTo) || next.portFrom > next.portTo) {
     throw new Error("Invalid port range");
   }
-  if (!Number.isInteger(next.interval) || next.interval < 2 || next.interval > 3600) {
+  if (interval == null) {
     throw new Error("Invalid interval");
   }
+  next.interval = interval;
   return next;
 }
 
 export async function registerRoutes(app: FastifyInstance): Promise<void> {
+  app.get("/api/status", async (): Promise<AgentStatus> => {
+    const settings = store.getSettings();
+    const canPreflight = settings.jumpHost && isValidHost(settings.jumpHost);
+    return {
+      checkedAt: Date.now(),
+      settings,
+      tunnels: mgr.snapshot(),
+      preflight: canPreflight ? await preflight(settings) : null,
+    };
+  });
+
   // ---- settings ----
   app.get("/api/settings", async () => store.getSettings());
 
@@ -116,6 +129,11 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
 
   // ---- tunnels ----
   app.get("/api/tunnels", async () => mgr.snapshot());
+
+  app.get<{ Params: { id: string } }>("/api/tunnels/:id", async (req, reply) => {
+    const cfg = store.findTunnel(req.params.id);
+    return cfg ? mgr.toWire(cfg) : reply.code(404).send({ error: "Not found" });
+  });
 
   app.post<{ Body: TunnelSpec }>("/api/tunnels", async (req, reply) => {
     try {
@@ -166,6 +184,11 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
       }
     });
   }
+
+  app.get<{ Params: { id: string } }>("/api/tunnels/:id/logs/snapshot", async (req, reply) => {
+    if (!store.findTunnel(req.params.id)) return reply.code(404).send({ error: "Not found" });
+    return { lines: mgr.getLogs(req.params.id) };
+  });
 
   // ---- SSE: global tunnel state ----
   app.get("/api/stream", (req, reply) => {

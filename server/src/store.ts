@@ -1,6 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { DATA_DIR, STATE_FILE, DEFAULT_SETTINGS } from "./config.js";
+import { parseHealthInterval } from "./parse.js";
 import type { PersistShape, Settings, TunnelConfig } from "./types.js";
 
 // Single JSON file holding settings + tunnel configs. Runtime state
@@ -45,11 +46,13 @@ export async function setSettings(next: Settings): Promise<Settings> {
 
 function normalizeSettings(raw: Partial<Settings> | undefined): Settings {
   const jumpHost = normalizeJumpHost(raw);
+  const interval = parseHealthInterval(raw?.interval) ?? DEFAULT_SETTINGS.interval;
   const settings: Settings = {
     ...DEFAULT_SETTINGS,
     ...(raw ?? {}),
     jumpHost,
     jumpHosts: jumpHost ? [jumpHost] : [],
+    interval,
   };
   return settings;
 }

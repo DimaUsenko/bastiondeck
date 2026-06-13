@@ -21,7 +21,7 @@ test("ssh args use settings jump host and login instead of legacy tunnel values"
     keyPath: "",
     portFrom: 8000,
     portTo: 9999,
-    interval: 10,
+    interval: 1800,
   });
 
   assert.equal(args.at(-1), "jdoe@default-bastion.example.com");

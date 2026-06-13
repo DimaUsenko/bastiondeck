@@ -39,7 +39,7 @@ const DENSITY: Record<string, { pad: string; gap: string }> = {
 };
 
 const DEFAULT_SETTINGS: Settings = {
-  jumpHost: "", jumpHosts: [], sshLogin: "", keyPath: "", portFrom: 8000, portTo: 9999, interval: 10,
+  jumpHost: "", jumpHosts: [], sshLogin: "", keyPath: "", portFrom: 8000, portTo: 9999, interval: 1800,
 };
 
 export default function App() {

@@ -1,13 +1,20 @@
 import { useEffect, useState } from "react";
 import { Icons } from "../icons.js";
+import { formatDuration, parseDurationInput } from "../lib/tm.js";
 import type { Settings } from "../types.js";
+
+type DraftSettings = Omit<Settings, "interval"> & { interval: string };
+
+function toDraft(settings: Settings): DraftSettings {
+  return { ...settings, interval: formatDuration(settings.interval) };
+}
 
 export function SettingsPage({ settings, onChange }: {
   settings: Settings;
   onChange: (next: Settings) => Promise<Settings>;
 }) {
   // Local draft so settings are saved only after explicit user approval.
-  const [draft, setDraft] = useState<Settings>(settings);
+  const [draft, setDraft] = useState<DraftSettings>(() => toDraft(settings));
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ kind: "idle" | "ok" | "error"; text: string }>({
     kind: "idle",
@@ -15,11 +22,11 @@ export function SettingsPage({ settings, onChange }: {
   });
 
   useEffect(() => {
-    setDraft(settings);
+    setDraft(toDraft(settings));
     setMessage({ kind: "idle", text: "Review the connection details, then save to apply them." });
   }, [settings]);
 
-  const set = (k: keyof Settings, v: string | number) => {
+  const set = (k: keyof DraftSettings, v: string | number) => {
     setDraft({ ...draft, [k]: v });
     setMessage({ kind: "idle", text: "Unsaved changes. Save when the values look correct." });
   };
@@ -28,7 +35,7 @@ export function SettingsPage({ settings, onChange }: {
     const jumpHost = draft.jumpHost.trim();
     const portFrom = Number(draft.portFrom);
     const portTo = Number(draft.portTo);
-    const interval = Number(draft.interval);
+    const interval = parseDurationInput(draft.interval) ?? 0;
     return {
       ...draft,
       jumpHost,
@@ -55,7 +62,7 @@ export function SettingsPage({ settings, onChange }: {
     if (!isValidPort(next.portFrom) || !isValidPort(next.portTo) || next.portFrom > next.portTo) {
       return "Auto-port range must be valid and ordered.";
     }
-    if (![5, 10, 30, 60].includes(next.interval)) return "Choose a supported health-check interval.";
+    if (!parseDurationInput(draft.interval)) return "Use a health-check interval from 2s to 24h, e.g. 60s, 15m, or 1h.";
     return null;
   };
 
@@ -70,7 +77,7 @@ export function SettingsPage({ settings, onChange }: {
     setMessage({ kind: "idle", text: "Saving settings..." });
     try {
       const saved = await onChange(next);
-      setDraft(saved);
+      setDraft(toDraft(saved));
       setMessage({ kind: "ok", text: "Settings saved. VPN and SSH reachability will refresh automatically." });
     } catch (err) {
       setMessage({ kind: "error", text: (err as Error).message || "Failed to save settings." });
@@ -116,13 +123,11 @@ export function SettingsPage({ settings, onChange }: {
           </div>
         </div>
         <div className="set-row">
-          <div className="si"><div className="st">Health-check interval</div><div className="sd">How often each active tunnel's latency is probed.</div></div>
-          <div className="sc" style={{ width: "140px" }}>
-            <select className="input sans" value={draft.interval}
-              onChange={(e) => set("interval", parseInt(e.target.value, 10))}
-              style={{ appearance: "none", cursor: "pointer" }}>
-              {[5, 10, 30, 60].map((n) => <option key={n} value={n}>{n} seconds</option>)}
-            </select>
+          <div className="si"><div className="st">Health-check interval</div><div className="sd">How often each active tunnel's latency is probed. Use 60s, 15m, or 1h.</div></div>
+          <div className="sc" style={{ width: "160px" }}>
+            <input className="input sans" value={draft.interval}
+              onChange={(e) => set("interval", e.target.value)}
+              placeholder="30m" />
           </div>
         </div>
       </div>

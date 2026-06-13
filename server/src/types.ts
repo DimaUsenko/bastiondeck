@@ -82,6 +82,14 @@ export interface PreflightResult {
   message: string;
 }
 
+/** One-shot snapshot intended for agents and scripts. */
+export interface AgentStatus {
+  checkedAt: number;
+  settings: Settings;
+  tunnels: WireTunnel[];
+  preflight: PreflightResult | null;
+}
+
 export interface PersistShape {
   settings: Settings;
   tunnels: TunnelConfig[];

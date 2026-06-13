@@ -7,6 +7,9 @@ import type { TunnelType } from "./types.js";
 const HOST_RE = /^[A-Za-z0-9]([A-Za-z0-9.-]{0,253}[A-Za-z0-9])?$/;
 const LOGIN_RE = /^[A-Za-z0-9._-]{1,64}$/;
 const PATH_RE = /^\/[A-Za-z0-9._~!$&'()*+,;=:@/%-]*$/;
+const HEALTH_INTERVAL_RE = /^(\d+)\s*([smh])?$/i;
+export const MIN_HEALTH_INTERVAL_SECONDS = 2;
+export const MAX_HEALTH_INTERVAL_SECONDS = 86400;
 
 export function isValidHost(h: string): boolean {
   return typeof h === "string" && HOST_RE.test(h) && !h.includes("..");
@@ -27,6 +30,25 @@ export function isValidPath(p: string): boolean {
 /** Reject key paths with shell/space/newline surprises; argv-safe anyway. */
 export function isValidKeyPath(p: string): boolean {
   return p === "" || (typeof p === "string" && p.length <= 1024 && !/[\n\r\0]/.test(p));
+}
+
+/** Parse health-check intervals such as 60, "60s", "15m", or "1h" into seconds. */
+export function parseHealthInterval(raw: unknown): number | null {
+  if (typeof raw === "number") {
+    if (!Number.isInteger(raw)) return null;
+    return raw >= MIN_HEALTH_INTERVAL_SECONDS && raw <= MAX_HEALTH_INTERVAL_SECONDS ? raw : null;
+  }
+  if (typeof raw !== "string") return null;
+
+  const match = raw.trim().match(HEALTH_INTERVAL_RE);
+  if (!match) return null;
+
+  const value = Number(match[1]);
+  const unit = (match[2] || "s").toLowerCase();
+  const multiplier = unit === "h" ? 3600 : unit === "m" ? 60 : 1;
+  const seconds = value * multiplier;
+  if (!Number.isSafeInteger(seconds)) return null;
+  return seconds >= MIN_HEALTH_INTERVAL_SECONDS && seconds <= MAX_HEALTH_INTERVAL_SECONDS ? seconds : null;
 }
 
 export interface ParsedAddress {
