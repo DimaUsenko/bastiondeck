@@ -33,7 +33,7 @@ BastionDeck does not replace your VPN, SSH keys, or access policies. It makes th
 - Health checks every 5/10/30/60 seconds.
 - MCP probe support through JSON-RPC `initialize`.
 - Local persistent settings in the user's home directory, outside the installed app.
-- Cross-platform distribution scaffolding for Homebrew and Windows `cmd.exe`.
+- Cross-platform install flow for Homebrew and Windows `cmd.exe`.
 
 ## Requirements
 
@@ -44,17 +44,7 @@ BastionDeck does not replace your VPN, SSH keys, or access policies. It makes th
 
 ## Install
 
-Until the first release is published, clone and run from source:
-
-```bash
-git clone https://github.com/DimaUsenko/bastiondeck.git
-cd bastiondeck
-npm ci
-npm run build
-npm run start:cli
-```
-
-Planned install paths after the first release:
+macOS with Homebrew:
 
 ```bash
 brew tap DimaUsenko/tap
@@ -62,9 +52,26 @@ brew install bastiondeck
 bastiondeck
 ```
 
+Windows from `cmd.exe`:
+
 ```cmd
 curl.exe -L -o install.cmd https://github.com/DimaUsenko/bastiondeck/releases/latest/download/install.cmd
 install.cmd
+```
+
+Then open a new `cmd.exe` window:
+
+```cmd
+bastiondeck
+```
+
+Run from source:
+
+```bash
+git clone https://github.com/DimaUsenko/bastiondeck.git
+cd bastiondeck
+npm ci
+npm run build
 bastiondeck
 ```
 
@@ -159,20 +166,15 @@ Uninstalling or replacing the app does not remove this folder. Delete it manuall
 
 ## Homebrew Distribution
 
-Recommended internal setup:
-
-1. Publish this repo to GitHub as `DimaUsenko/bastiondeck`.
-2. Create a tap repo, for example `DimaUsenko/homebrew-tap`.
-3. Copy [packaging/homebrew/bastiondeck.rb](packaging/homebrew/bastiondeck.rb) to `Formula/bastiondeck.rb`.
-4. Replace `sha256` after the first GitHub release.
-
-User install:
+Install:
 
 ```bash
 brew tap DimaUsenko/tap
 brew install bastiondeck
 bastiondeck
 ```
+
+The tap formula is maintained from [packaging/homebrew/bastiondeck.rb](packaging/homebrew/bastiondeck.rb).
 
 ## Windows CMD Install
 
@@ -218,7 +220,4 @@ The release workflow builds and uploads:
 - `install.cmd`
 - `uninstall.cmd`
 
-Before the first Homebrew tap release, update:
-
-- Homebrew formula `sha256`
-- Homebrew tap name in this README
+After each release, update the Homebrew tap formula checksum for the new tag.
