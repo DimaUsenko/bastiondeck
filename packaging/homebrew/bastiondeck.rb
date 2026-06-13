@@ -1,18 +1,17 @@
 class Bastiondeck < Formula
   desc "Bring private-network services to localhost through SSH bastion hosts"
   homepage "https://github.com/DimaUsenko/bastiondeck"
-  url "https://github.com/DimaUsenko/bastiondeck/archive/refs/tags/v0.1.0.tar.gz"
-  sha256 "REPLACE_WITH_RELEASE_TARBALL_SHA256"
+  url "https://github.com/DimaUsenko/bastiondeck/releases/download/v0.1.0/bastiondeck-source.tar.gz"
+  sha256 "83b47129e42af7b6ab121d2a15d8f5f450569bc3d1acdb160f4a6f2cb6702042"
   license "MIT"
 
   depends_on "node@22"
 
   def install
-    system "npm", "ci"
-    system "npm", "run", "build"
-
+    system "npm", "ci", "--omit=dev"
     libexec.install Dir["*"]
-    bin.install_symlink libexec/"bin/bastiondeck.mjs" => "bastiondeck"
+    (bin/"bastiondeck").write_env_script libexec/"bin/bastiondeck.mjs",
+      PATH: "#{Formula["node@22"].opt_bin}:$PATH"
   end
 
   def caveats
