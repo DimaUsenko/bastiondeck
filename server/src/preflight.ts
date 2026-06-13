@@ -57,7 +57,7 @@ export async function preflight(settings: Settings, host = settings.jumpHost): P
   ]);
   const loginConfigured = settings.sshLogin.trim().length > 0;
   const status = dns.ok && sshPort.ok && loginConfigured ? "ok" : sshPort.ok ? "warn" : "error";
-  let message = "Corporate VPN looks ready";
+  let message = "Corp. VPN ready";
   if (!sshPort.ok) message = "Corporate VPN or jump host is unavailable";
   else if (!loginConfigured) message = "Enter your SSH login before starting tunnels";
 
