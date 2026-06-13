@@ -26,23 +26,12 @@ function tcpProbe(port: number, timeoutMs: number): Promise<number | null> {
   });
 }
 
-const MCP_INIT_BODY = JSON.stringify({
-  jsonrpc: "2.0",
-  id: 1,
-  method: "initialize",
-  params: {
-    protocolVersion: "2025-06-18",
-    capabilities: {},
-    clientInfo: { name: "bastiondeck-probe", version: "0.1.0" },
-  },
-});
-
 /**
- * For MCP tunnels, send the JSON-RPC `initialize` handshake and look for
- * serverInfo in the response (mirrors the curl probe in CONTEXT.md). SSE
- * (text/event-stream) responses are handled by reading the first data frame.
+ * For MCP tunnels, only verify that the HTTP endpoint is reachable. Authenticated
+ * MCP servers such as Langfuse may return 401/403 without credentials; that
+ * still proves the tunnel reaches the service.
  */
-async function mcpProbe(
+async function httpReachabilityProbe(
   port: number,
   path: string,
   timeoutMs: number,
@@ -51,23 +40,15 @@ async function mcpProbe(
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
     const res = await fetch(`http://localhost:${port}${path || "/mcp"}`, {
-      method: "POST",
+      method: "HEAD",
       headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json, text/event-stream",
+        Accept: "*/*",
       },
-      body: MCP_INIT_BODY,
       signal: ctrl.signal,
     });
-    const text = await res.text();
-    const hasServerInfo = /"serverInfo"\s*:/.test(text);
-    if (res.ok && hasServerInfo) {
-      const m = text.match(/"name"\s*:\s*"([^"]+)"/);
-      return { ok: true, detail: `initialize → serverInfo${m ? ` (${m[1]})` : ""}` };
-    }
-    return { ok: false, detail: `initialize → HTTP ${res.status}, no serverInfo` };
+    return { ok: true, detail: `HTTP ${res.status} reachable` };
   } catch (err) {
-    return { ok: false, detail: `initialize failed: ${(err as Error).message}` };
+    return { ok: false, detail: `HTTP probe failed: ${(err as Error).message}` };
   } finally {
     clearTimeout(timer);
   }
@@ -80,8 +61,8 @@ export async function probe(cfg: TunnelConfig, timeoutMs = 8000): Promise<ProbeR
     return { ok: false, latency: null, detail: "TCP connect refused" };
   }
   if (cfg.type === "MCP") {
-    const mcp = await mcpProbe(cfg.localPort, cfg.path, timeoutMs);
+    const mcp = await httpReachabilityProbe(cfg.localPort, cfg.path, timeoutMs);
     return { ok: mcp.ok, latency: mcp.ok ? latency : null, detail: mcp.detail };
   }
-  return { ok: true, latency, detail: `TCP ${latency}ms · 200 OK` };
+  return { ok: true, latency, detail: `TCP ${latency}ms` };
 }
