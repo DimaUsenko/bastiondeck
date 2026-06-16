@@ -1,6 +1,6 @@
 {
   "name": "bastiondeck",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Local web panel for bringing private-network services to localhost through SSH bastion hosts.",
   "license": "MIT",
   "bin": {
