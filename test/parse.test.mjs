@@ -9,6 +9,41 @@ test("parseAddress accepts MCP URLs", () => {
   assert.equal(parsed.port, 8040);
   assert.equal(parsed.path, "/mcp");
   assert.equal(parsed.type, "MCP");
+  assert.equal(parsed.protocol, "http");
+});
+
+test("parseAddress defaults web URLs from scheme", () => {
+  const https = parseAddress("https://internal-app.example.com/team");
+  assert.equal(https.ok, true);
+  assert.equal(https.host, "internal-app.example.com");
+  assert.equal(https.port, 443);
+  assert.equal(https.path, "/team");
+  assert.equal(https.protocol, "https");
+
+  const http = parseAddress("http://internal-app.example.com");
+  assert.equal(http.ok, true);
+  assert.equal(http.port, 80);
+  assert.equal(http.protocol, "http");
+});
+
+test("parseAddress preserves explicit scheme with non-default ports", () => {
+  const parsed = parseAddress("http://internal-app.example.com:443");
+  assert.equal(parsed.ok, true);
+  assert.equal(parsed.port, 443);
+  assert.equal(parsed.protocol, "http");
+});
+
+test("parseAddress treats bare hosts as HTTPS web apps", () => {
+  const parsed = parseAddress("internal-app.example.com");
+  assert.equal(parsed.ok, true);
+  assert.equal(parsed.host, "internal-app.example.com");
+  assert.equal(parsed.port, 443);
+  assert.equal(parsed.protocol, "https");
+});
+
+test("parseAddress rejects malformed explicit ports", () => {
+  assert.equal(parseAddress("internal-app.example.com:abc").ok, false);
+  assert.equal(parseAddress("internal-app.example.com:").ok, false);
 });
 
 test("parseAddress rejects unsafe hosts", () => {

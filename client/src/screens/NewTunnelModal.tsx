@@ -51,7 +51,7 @@ export function NewTunnelModal({ settings, editing, onClose, onSubmit, toast }: 
   const p = parseAddress(raw);
   const autoPort = suggested ?? (p.ok ? p.port! : settings.portFrom);
   const effPort = localPort ? parseInt(localPort, 10) : autoPort;
-  const previewTunnel = p.ok ? { host: p.host!, port: p.port!, path: p.path, localPort: effPort } : null;
+  const previewTunnel = p.ok ? { host: p.host!, port: p.port!, protocol: p.protocol!, path: p.path, localPort: effPort } : null;
   const needsSsh = !settings.jumpHost.trim() || !settings.sshLogin.trim();
 
   function submit() {
@@ -59,6 +59,7 @@ export function NewTunnelModal({ settings, editing, onClose, onSubmit, toast }: 
     const spec: TunnelSpec = {
       name: name.trim() || undefined,
       type: p.type,
+      protocol: p.protocol,
       host: p.host!,
       port: p.port!,
       path: p.path,
@@ -79,8 +80,8 @@ export function NewTunnelModal({ settings, editing, onClose, onSubmit, toast }: 
           <div className="field">
             <label>Internal address</label>
             <input ref={inputRef} className="input lg" value={raw} onChange={(e) => setRaw(e.target.value)}
-              placeholder="http://internal-api.example.com:8040/mcp" />
-            <span className="help">Accepts <span className="mono">host:port</span>, a full URL, or <span className="mono">host:port/path</span>.</span>
+              placeholder="https://internal-app.example.com" />
+            <span className="help">Accepts <span className="mono">host</span>, <span className="mono">host:port</span>, a full URL, or <span className="mono">host:port/path</span>.</span>
           </div>
 
           <div className={"parsed-card" + (p.ok ? " ok" : "")}>
@@ -95,6 +96,9 @@ export function NewTunnelModal({ settings, editing, onClose, onSubmit, toast }: 
               <div className={"chip" + (p.ok ? "" : " empty")}>
                 <span className="ck">Port</span><span className="cv">{p.ok ? p.port : "—"}</span>
               </div>
+              <div className={"chip" + (p.ok ? "" : " empty")}>
+                <span className="ck">Protocol</span><span className="cv">{p.ok ? p.protocol : "—"}</span>
+              </div>
               <div className={"chip" + (p.ok ? " accent" : " empty")}>
                 <span className="ck">Type</span><span className="cv">{p.ok ? p.type : "—"}</span>
               </div>
@@ -105,7 +109,7 @@ export function NewTunnelModal({ settings, editing, onClose, onSubmit, toast }: 
             {p.ok && (
               <div className="addr-row" style={{ marginTop: "2px" }}>
                 <span className="lbl">Local</span>
-                <span className="val mono" style={{ color: "var(--accent)" }}>http://localhost:{effPort}{p.path || ""}</span>
+                <span className="val mono" style={{ color: "var(--accent)" }}>{p.protocol}://localhost:{effPort}{p.path || ""}</span>
               </div>
             )}
           </div>

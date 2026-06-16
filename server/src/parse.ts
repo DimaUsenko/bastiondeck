@@ -1,4 +1,4 @@
-import type { TunnelType } from "./types.js";
+import type { TunnelProtocol, TunnelType } from "./types.js";
 
 // Strict validation so nothing user-controlled can break out of the ssh argv.
 // (We never use a shell, but defence in depth: reject anything that isn't a
@@ -57,6 +57,7 @@ export interface ParsedAddress {
   port: number;
   path: string;
   type: TunnelType;
+  protocol: TunnelProtocol;
   error?: string;
 }
 
@@ -67,20 +68,43 @@ export interface ParsedAddress {
  */
 export function parseAddress(raw: string): ParsedAddress {
   const fail = (error: string): ParsedAddress =>
-    ({ ok: false, host: "", port: 0, path: "", type: "API", error });
+    ({ ok: false, host: "", port: 0, path: "", type: "API", protocol: "http", error });
 
   if (!raw || !raw.trim()) return fail("Empty address");
-  let s = raw.trim().replace(/^https?:\/\//i, "");
+  const input = raw.trim();
+  const scheme = input.match(/^(https?):\/\//i)?.[1]?.toLowerCase() as TunnelProtocol | undefined;
 
   let path = "";
-  const slash = s.indexOf("/");
-  if (slash >= 0) {
-    path = s.slice(slash);
-    s = s.slice(0, slash);
+  let host = "";
+  let portStr = "";
+  let hasExplicitPort = false;
+  let protocol: TunnelProtocol = scheme ?? "https";
+
+  if (scheme) {
+    let parsed: URL;
+    try {
+      parsed = new URL(input);
+    } catch {
+      return fail("Invalid URL");
+    }
+    host = parsed.hostname;
+    portStr = parsed.port;
+    hasExplicitPort = portStr !== "";
+    path = parsed.pathname === "/" ? "" : parsed.pathname;
+  } else {
+    let s = input;
+    const slash = s.indexOf("/");
+    if (slash >= 0) {
+      path = s.slice(slash);
+      s = s.slice(0, slash);
+    }
+    const parts = s.split(":");
+    if (parts.length > 2) return fail("Invalid host");
+    [host, portStr = ""] = parts;
+    hasExplicitPort = parts.length === 2;
   }
   path = path.replace(/\/$/, "");
 
-  const [host, portStr] = s.split(":");
   if (!host) return fail("Missing host");
   if (!isValidHost(host)) return fail("Invalid host");
   if (path && !isValidPath(path)) return fail("Invalid path");
@@ -88,9 +112,17 @@ export function parseAddress(raw: string): ParsedAddress {
   const looksMcp = /\/mcp\b/i.test(path) || /mcp/i.test(host);
   const type: TunnelType = looksMcp ? "MCP" : "API";
 
-  let port = parseInt(portStr, 10);
-  if (!port || Number.isNaN(port)) port = type === "MCP" ? 8040 : 8080;
+  let port: number;
+  if (hasExplicitPort) {
+    if (!/^\d+$/.test(portStr)) return fail("Invalid port");
+    port = Number(portStr);
+  } else if (scheme) {
+    port = protocol === "https" ? 443 : 80;
+  } else {
+    port = type === "MCP" ? 8040 : 443;
+    protocol = port === 443 ? "https" : "http";
+  }
   if (!isValidPort(port)) return fail("Invalid port");
 
-  return { ok: true, host, port, path, type };
+  return { ok: true, host, port, path, type, protocol };
 }

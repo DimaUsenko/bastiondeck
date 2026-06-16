@@ -1,6 +1,7 @@
 // Shared domain types for the BastionDeck backend.
 
 export type TunnelType = "MCP" | "API";
+export type TunnelProtocol = "http" | "https";
 export type Status = "connecting" | "active" | "inactive" | "error";
 export type LogLevel = "info" | "ok" | "warn" | "err";
 
@@ -22,6 +23,7 @@ export interface TunnelConfig {
   id: string;
   name: string;
   type: TunnelType;
+  protocol: TunnelProtocol;
   host: string;
   port: number;
   /** "" or e.g. "/mcp"; used only to build probe URLs, never the ssh argv. */
@@ -56,6 +58,7 @@ export interface WireTunnel extends TunnelConfig {
 export interface TunnelSpec {
   name?: string;
   type?: TunnelType;
+  protocol?: TunnelProtocol;
   host: string;
   port: number;
   path?: string;

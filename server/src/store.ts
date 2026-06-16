@@ -2,7 +2,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { DATA_DIR, STATE_FILE, DEFAULT_SETTINGS } from "./config.js";
 import { parseHealthInterval } from "./parse.js";
-import type { PersistShape, Settings, TunnelConfig } from "./types.js";
+import type { PersistShape, Settings, TunnelConfig, TunnelProtocol } from "./types.js";
 
 // Single JSON file holding settings + tunnel configs. Runtime state
 // (status/pid/latency/logs) is never persisted — it lives in the manager.
@@ -15,7 +15,7 @@ export async function load(): Promise<PersistShape> {
     const parsed = JSON.parse(raw) as Partial<PersistShape>;
     state = {
       settings: normalizeSettings(parsed.settings),
-      tunnels: Array.isArray(parsed.tunnels) ? parsed.tunnels : [],
+      tunnels: Array.isArray(parsed.tunnels) ? parsed.tunnels.map(normalizeTunnel) : [],
     };
   } catch (err: unknown) {
     if ((err as NodeJS.ErrnoException).code !== "ENOENT") {
@@ -25,6 +25,27 @@ export async function load(): Promise<PersistShape> {
     await persist();
   }
   return state;
+}
+
+function normalizeProtocol(raw: unknown, port: unknown): TunnelProtocol {
+  if (raw === "https") return "https";
+  if (raw === "http") return "http";
+  return port === 443 ? "https" : "http";
+}
+
+function normalizeTunnel(raw: Partial<TunnelConfig>): TunnelConfig {
+  return {
+    ...raw,
+    name: String(raw.name ?? raw.host ?? "Tunnel"),
+    type: raw.type === "MCP" ? "MCP" : "API",
+    protocol: normalizeProtocol(raw.protocol, raw.port),
+    host: String(raw.host ?? ""),
+    port: Number(raw.port),
+    path: String(raw.path ?? ""),
+    localPort: Number(raw.localPort),
+    autoRestart: Boolean(raw.autoRestart),
+    id: String(raw.id ?? ""),
+  };
 }
 
 async function persist(): Promise<void> {
@@ -78,9 +99,9 @@ export function findTunnel(id: string): TunnelConfig | undefined {
 }
 
 export async function addTunnel(t: TunnelConfig): Promise<TunnelConfig> {
-  state.tunnels.unshift(t);
+  state.tunnels.unshift(normalizeTunnel(t));
   await persist();
-  return { ...t };
+  return { ...state.tunnels[0] };
 }
 
 export async function updateTunnel(
@@ -89,7 +110,7 @@ export async function updateTunnel(
 ): Promise<TunnelConfig | undefined> {
   const idx = state.tunnels.findIndex((x) => x.id === id);
   if (idx < 0) return undefined;
-  state.tunnels[idx] = { ...state.tunnels[idx], ...patch, id };
+  state.tunnels[idx] = normalizeTunnel({ ...state.tunnels[idx], ...patch, id });
   await persist();
   return { ...state.tunnels[idx] };
 }

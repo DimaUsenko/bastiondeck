@@ -1,4 +1,5 @@
 export type TunnelType = "MCP" | "API";
+export type TunnelProtocol = "http" | "https";
 export type Status = "connecting" | "active" | "inactive" | "error";
 export type LogLevel = "info" | "ok" | "warn" | "err";
 
@@ -18,6 +19,7 @@ export interface WireTunnel {
   name: string;
   type: TunnelType;
   status: Status;
+  protocol: TunnelProtocol;
   host: string;
   port: number;
   path: string;
@@ -52,6 +54,7 @@ export interface LogLine {
 export interface TunnelSpec {
   name?: string;
   type?: TunnelType;
+  protocol?: TunnelProtocol;
   host: string;
   port: number;
   path?: string;

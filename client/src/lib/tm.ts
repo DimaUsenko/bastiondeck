@@ -1,4 +1,4 @@
-import type { Settings, Status, TunnelType, WireTunnel, Tunnel } from "../types.js";
+import type { Settings, Status, TunnelProtocol, TunnelType, WireTunnel, Tunnel } from "../types.js";
 
 // Pure presentation helpers (ported from the design prototype's data.jsx).
 
@@ -9,12 +9,16 @@ export const STATUS_LABEL: Record<Status, string> = {
   error: "Error",
 };
 
-export function localUrl(t: Pick<WireTunnel, "localPort" | "path">): string {
-  return `http://localhost:${t.localPort}${t.path || ""}`;
+export function localUrl(t: Pick<WireTunnel, "localPort" | "path"> & Partial<Pick<WireTunnel, "protocol" | "port">>): string {
+  const protocol = t.protocol ?? (t.port === 443 ? "https" : "http");
+  return `${protocol}://localhost:${t.localPort}${t.path || ""}`;
 }
 
-export function sourceAddr(t: Pick<WireTunnel, "host" | "port" | "path">): string {
-  return `${t.host}:${t.port}${t.path || ""}`;
+export function sourceAddr(t: Pick<WireTunnel, "host" | "port" | "path"> & Partial<Pick<WireTunnel, "protocol">>): string {
+  const protocol = t.protocol ?? (t.port === 443 ? "https" : "http");
+  const defaultPort = protocol === "https" ? 443 : 80;
+  const port = t.port === defaultPort ? "" : `:${t.port}`;
+  return `${protocol}://${t.host}${port}${t.path || ""}`;
 }
 
 export function sshCommand(
@@ -74,23 +78,57 @@ export interface ParsedAddress {
   port?: number;
   path?: string;
   type?: TunnelType;
+  protocol?: TunnelProtocol;
 }
 
 /** Client-side preview parser (the server re-validates on create). */
 export function parseAddress(raw: string): ParsedAddress {
   if (!raw || !raw.trim()) return { ok: false };
-  let s = raw.trim().replace(/^https?:\/\//i, "");
+  const input = raw.trim();
+  const scheme = input.match(/^(https?):\/\//i)?.[1]?.toLowerCase() as TunnelProtocol | undefined;
+
   let path = "";
-  const slash = s.indexOf("/");
-  if (slash >= 0) {
-    path = s.slice(slash);
-    s = s.slice(0, slash);
+  let host = "";
+  let portStr = "";
+  let hasExplicitPort = false;
+  let protocol: TunnelProtocol = scheme ?? "https";
+
+  if (scheme) {
+    let parsed: URL;
+    try {
+      parsed = new URL(input);
+    } catch {
+      return { ok: false };
+    }
+    host = parsed.hostname;
+    portStr = parsed.port;
+    hasExplicitPort = portStr !== "";
+    path = parsed.pathname === "/" ? "" : parsed.pathname;
+  } else {
+    let s = input;
+    const slash = s.indexOf("/");
+    if (slash >= 0) {
+      path = s.slice(slash);
+      s = s.slice(0, slash);
+    }
+    const parts = s.split(":");
+    if (parts.length > 2) return { ok: false };
+    [host, portStr = ""] = parts;
+    hasExplicitPort = parts.length === 2;
   }
-  const [host, portStr] = s.split(":");
   if (!host) return { ok: false };
   const looksMcp = /\/mcp\b/i.test(path) || /mcp/i.test(host);
   const type: TunnelType = looksMcp ? "MCP" : "API";
-  let port = parseInt(portStr, 10);
-  if (!port || Number.isNaN(port)) port = type === "MCP" ? 8040 : 8080;
-  return { ok: true, host, port, path: path.replace(/\/$/, ""), type };
+  let port: number;
+  if (hasExplicitPort) {
+    if (!/^\d+$/.test(portStr)) return { ok: false };
+    port = Number(portStr);
+  } else if (scheme) {
+    port = protocol === "https" ? 443 : 80;
+  } else {
+    port = type === "MCP" ? 8040 : 443;
+    protocol = port === 443 ? "https" : "http";
+  }
+  if (!Number.isInteger(port) || port < 1 || port > 65535) return { ok: false };
+  return { ok: true, host, port, path: path.replace(/\/$/, ""), type, protocol };
 }

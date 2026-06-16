@@ -13,7 +13,7 @@ import {
 import { suggestPort } from "./ssh.js";
 import { preflight } from "./preflight.js";
 import * as store from "./store.js";
-import type { AgentStatus, Settings, TunnelConfig, TunnelSpec, TunnelType } from "./types.js";
+import type { AgentStatus, Settings, TunnelConfig, TunnelProtocol, TunnelSpec, TunnelType } from "./types.js";
 
 let idCounter = Date.now();
 const newId = (): string => `t${(idCounter++).toString(36)}`;
@@ -43,10 +43,16 @@ function normalizeSpec(spec: TunnelSpec): Omit<TunnelConfig, "id"> {
   const type: TunnelType = spec.type === "MCP" || spec.type === "API"
     ? spec.type
     : /\/mcp\b/i.test(path) || /mcp/i.test(spec.host) ? "MCP" : "API";
+  const protocol: TunnelProtocol = spec.protocol === "https"
+    ? "https"
+    : spec.protocol === "http"
+      ? "http"
+      : spec.port === 443 ? "https" : "http";
   const name = (spec.name && spec.name.trim()) || `${spec.host.split(".")[0]}${path ? ` ${type}` : ""}`;
   return {
     name,
     type,
+    protocol,
     host: spec.host,
     port: spec.port,
     path,

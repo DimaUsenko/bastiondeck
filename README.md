@@ -24,7 +24,7 @@ BastionDeck does not replace your VPN, SSH keys, or access policies. It makes th
 
 ## Features
 
-- Create tunnels from `host:port`, `host:port/path`, or full internal URLs.
+- Create tunnels from `host`, `host:port`, `host:port/path`, or full internal URLs.
 - Configure one global bastion/jump host for all tunnels.
 - Configure SSH login and key handling once in Settings.
 - Agent-ready local API for creating tunnels, changing settings, checking status, and reading logs.
